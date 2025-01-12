@@ -1,15 +1,20 @@
 'use client';
+
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import { Box, Button, Chip, Stack, Typography } from '@mui/material';
 import Image from 'next/image';
-import React from 'react';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import { useRouter } from 'next/navigation';
+import DeleteProductDialog from './DeleteProductDialog';
+import { isSeller } from '@/utils/check.role';
 
 const ProductCard = (props) => {
+  const router = useRouter();
+  const productId = props._id;
   return (
     <Box
       sx={{
         width: '400px',
+
         boxShadow:
           ' rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px',
       }}
@@ -30,25 +35,23 @@ const ProductCard = (props) => {
       >
         <Stack direction="row" justifyContent="space-between">
           <Typography variant="h5">{props.name}</Typography>
-          <Chip label="Sajha" color="success" variant="outlined" />
+          <Chip label={props.brand} color="success" variant="outlined" />
           <Typography variant="h5">{props.price}</Typography>
         </Stack>
 
-        <Typography sx={{ textAlign: 'justify', overflow: 'hidden' }}>
-          {props.description}...
+        <Typography sx={{ textAlign: 'justify' }}>
+          {props.description}
         </Typography>
         <Stack direction="row" justifyContent="space-between">
-          <Button
-            color="error"
-            variant="contained"
-            startIcon={<DeleteOutlineOutlinedIcon />}
-          >
-            Delete
-          </Button>
+          {isSeller() && <DeleteProductDialog productId={productId} />}
+
           <Button
             color="success"
             variant="contained"
             startIcon={<VisibilityOutlinedIcon />}
+            onClick={() => {
+              router.push(`/product/details/${productId}`);
+            }}
           >
             View More
           </Button>

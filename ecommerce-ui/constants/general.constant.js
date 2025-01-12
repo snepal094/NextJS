@@ -20,7 +20,7 @@ export const productCategories = [
   'clothing',
   'cosmetics',
   'electrical',
-  'electronics',
+  'electronic',
   'fruits',
   'grocery',
   'gym',
@@ -32,5 +32,4 @@ export const productCategories = [
   'sports',
   'stationery',
   'vegetables',
-  'others',
 ];

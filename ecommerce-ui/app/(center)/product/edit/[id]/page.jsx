@@ -1,66 +1,76 @@
 'use client';
-import { productCategories } from '@/constants/general.constant';
-import $axios from '@/lib/axios/axios.instance';
-import { addProductValidationSchema } from '@/validation-schema/product.validation.schema';
 import {
   Button,
-  Box,
   Checkbox,
   FormControl,
   FormControlLabel,
   FormHelperText,
   InputLabel,
-  LinearProgress,
   MenuItem,
   Select,
   TextField,
   Typography,
 } from '@mui/material';
-import { useMutation } from '@tanstack/react-query';
 import { Formik } from 'formik';
-import React from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 
-const AddProduct = () => {
-  const [accessToken, setAccessToken] = useState(null);
+import { productCategories } from '../../../../../constants/general.constant';
+import { addProductValidationSchema } from '../../../../../validation-schema/product.validation.schema';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import $axios from '../../../../../lib/axios/axios.instance';
+import Loader from '../../../../../components/Loader';
+import { useRouter } from 'next/navigation';
 
-  useEffect(() => {
-    const token = window.localStorage.getItem('token');
-    setAccessToken(token);
-  }, []);
-
+const EditProductPage = () => {
+  const params = useParams();
   const router = useRouter();
 
-  const { isPending, error, mutate } = useMutation({
-    mutationKey: ['add-product'],
-    mutationFn: async (values) => {
-      return await $axios.post('/product/add', values, {});
-    },
-    onSuccess: (res) => {
-      router.push('/');
-    },
-    onError: (error) => {
-      console.log(error);
+  const productId = params.id;
+
+  // get product details
+  const { isPending, data, isError, error } = useQuery({
+    queryKey: ['get-product-detail'],
+    queryFn: async () => {
+      return await $axios.get(`/product/detail/${productId}`);
     },
   });
 
+  // edit product
+  const { isPending: editPending, mutate } = useMutation({
+    mutationKey: ['edit-product'],
+    mutationFn: async (values) => {
+      return await $axios.put(`/product/edit/${productId}`, values);
+    },
+    onSuccess: () => {
+      router.push(`/product/detail/${productId}`);
+    },
+  });
+
+  const productDetails = data?.data?.productDetail;
+
+  if (isPending || editPending) {
+    return <Loader />;
+  }
+
+  if (isError) {
+    return <div>Could not fetch data...</div>;
+  }
+
   return (
-    <Box>
-      {isPending && <LinearProgress color="secondary" />}
+    <div>
       <Formik
+        enableReinitialize
         initialValues={{
-          name: '',
-          brand: '',
-          price: '',
-          quantity: 1,
-          category: '',
-          freeShipping: false,
-          description: '',
+          name: productDetails?.name || '',
+          brand: productDetails?.brand || '',
+          price: productDetails?.price || 0,
+          quantity: productDetails?.quantity || 1,
+          category: productDetails?.category || '',
+          freeShipping: productDetails?.freeShipping,
+          description: productDetails?.description,
         }}
         validationSchema={addProductValidationSchema}
         onSubmit={(values) => {
-          console.log('Form submitted with values:', values); // Debugging
           mutate(values);
         }}
       >
@@ -70,7 +80,7 @@ const AddProduct = () => {
               onSubmit={formik.handleSubmit}
               className="auth-form  min-w-[450px]"
             >
-              <Typography variant="h4">Add Product</Typography>
+              <Typography variant="h4">Edit Product</Typography>
 
               <FormControl fullWidth>
                 <TextField label="Name" {...formik.getFieldProps('name')} />
@@ -148,14 +158,17 @@ const AddProduct = () => {
               >
                 <FormControlLabel
                   control={
-                    <Checkbox {...formik.getFieldProps('freeShipping')} />
+                    <Checkbox
+                      checked={formik?.values?.freeShipping}
+                      {...formik.getFieldProps('freeShipping')}
+                    />
                   }
                   label="Free Shipping"
                   labelPlacement="start"
                 />
               </FormControl>
               <Button
-                disabled={isPending}
+                // disabled={isPending}
                 fullWidth
                 variant="contained"
                 color="secondary"
@@ -167,8 +180,8 @@ const AddProduct = () => {
           );
         }}
       </Formik>
-    </Box>
+    </div>
   );
 };
 
-export default AddProduct;
+export default EditProductPage;
