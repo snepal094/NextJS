@@ -11,8 +11,12 @@ import {
 import { Formik } from 'formik';
 import React from 'react';
 import { loginUserValidationSchema } from '../../validation-schema/login.user.validation.schema';
+import axios from 'axios';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 const LogIn = () => {
+  const router = useRouter();
   return (
     <Box>
       <Formik
@@ -22,8 +26,51 @@ const LogIn = () => {
         }}
         validationSchema={loginUserValidationSchema}
         // validation is required in both frontend and backend
-        onSubmit={(values) => {
-          console.log(values);
+
+        onSubmit={async (values) => {
+          try {
+            console.log(values);
+
+            //API hit is a time consuming task: async await
+            const response = await axios.post(
+              'http://localhost:8080/user/login',
+              values //req.body, equivalent to email=values.email, password=values.password
+            );
+
+            /* Equivalent to:
+           ? const response= await axios({
+           ? method: 'POST',
+           ? url: 'http://localhost:8080/user/login',
+           ? data: values
+           ? })
+            */
+
+            console.log(response);
+            //response=response sent by the API (see user.controller.js in backend)
+
+            window.localStorage.setItem('token', response?.data?.accessToken);
+            //accessToken stored at the local storage (browser is holding the token temporarily)
+            //accessToken isn't required to be saved at the database
+            //it should expire (for security)
+            //refreshToken is needed to restore (renew) accessTokens since it won't be practical for the user to be logged out every time accessToken expires
+            //for eg: if accessToken expires in 10 minutes, refreshToken expires in 7 days
+            //storing it in the local storage saves bandwidth and makes microservice run smoothly
+            //eg: pay and order services (APIs).
+
+            window.localStorage.setItem(
+              'firstName',
+              response?.data?.userDetails?.firstName
+            );
+
+            window.localStorage.setItem(
+              'userRole',
+              response?.data?.userDetails?.role
+            );
+
+            router.push('/'); //navigate to the home page
+          } catch (error) {
+            console.log('Error aayo');
+          }
         }}
       >
         {(formik) => {
@@ -55,14 +102,24 @@ const LogIn = () => {
                   </FormHelperText>
                 ) : null}
               </FormControl>
-              <Button
-                type="submit"
-                color="secondary"
-                variant="contained"
-                fullWidth
-              >
-                Log In
-              </Button>
+
+              <div className="w-full flex flex-col justify-center items-center">
+                <Button
+                  type="submit"
+                  color="secondary"
+                  variant="contained"
+                  fullWidth
+                >
+                  Log In
+                </Button>
+
+                <Link
+                  href="/register"
+                  className="text-md underline text-blue-600 mt-2"
+                >
+                  New here? Register
+                </Link>
+              </div>
             </form>
           );
         }}

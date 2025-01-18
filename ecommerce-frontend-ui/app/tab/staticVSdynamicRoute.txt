@@ -1,0 +1,13 @@
+static route 
+a route that is predefined and does not change
+less costly since data is fetched from nearby networks (geographically close locations)
+saves bandwidth
+fast loading
+eg: pages with no change (login page)
+Static routes are often used for content that doesn't change frequently and can be served from a Content Delivery Network (CDN).
+
+dynamic route
+a route that is generated based on dynamic data or parameters
+more costly since data is fetched from origin (generally far away)
+eg: page after a user logs in (has to be user specific)
+Dynamic routes often involve backend processing and database queries to generate the content on the fly.
