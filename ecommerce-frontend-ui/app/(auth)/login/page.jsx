@@ -75,13 +75,10 @@ const LogIn = () => {
       >
         {(formik) => {
           return (
-            <form
-              onSubmit={formik.handleSubmit}
-              className="flex flex-col justify-between min-h-[400px] w-[400px] shadow-2xl shadow-gray-500 px-8 py-4 items-center"
-            >
+            <form onSubmit={formik.handleSubmit} className="auth-form">
               {/* handleSubmit is a pre-existing function of formik */}
 
-              <p className="text-3xl font-bold">Sign In</p>
+              <p className="text-3xl font-bold">Log In</p>
 
               <FormControl fullWidth>
                 {/* FormControl is a div, easier to style */}
@@ -110,7 +107,7 @@ const LogIn = () => {
                   variant="contained"
                   fullWidth
                 >
-                  Log In
+                  Sign In
                 </Button>
 
                 <Link
