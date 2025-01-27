@@ -42,7 +42,7 @@ const EditProductPage = () => {
       return await $axios.put(`/product/edit/${productId}`, values);
     },
     onSuccess: () => {
-      router.push(`/product/detail/${productId}`);
+      router.push(`/product/details/${productId}`);
     },
   });
 

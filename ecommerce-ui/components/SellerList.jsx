@@ -1,11 +1,11 @@
 'use client';
-import $axios from '@/lib/axios/axios.instance';
+import $axios from '../lib/axios/axios.instance';
 import { Pagination } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import Loader from './Loader';
 import ProductCard from './ProductCard';
-import { isSeller } from '@/utils/check.role';
+import { isSeller } from '../utils/check.role';
 
 const SellerList = () => {
   const [page, setPage] = useState(1);
@@ -15,7 +15,7 @@ const SellerList = () => {
     queryFn: async () => {
       return await $axios.post('/product/seller/list', {
         page: page,
-        limit: 2,
+        limit: 9,
       });
     },
     enabled: isSeller(),
@@ -27,18 +27,14 @@ const SellerList = () => {
   }
 
   if (error) {
-    return <h1>{error.message}</h1>;
+    return <h1>{error}</h1>;
   }
   return (
     <div className="flex flex-col justify-between items-center gap-8  ">
       <div className="flex justify-center items-center gap-8 flex-wrap">
-        {productList && productList.length > 0 ? (
-          productList.map((item) => {
-            return <ProductCard key={item._id} {...item} />;
-          })
-        ) : (
-          <p>No products</p>
-        )}
+        {productList.map((item) => {
+          return <ProductCard key={item._id} {...item} />;
+        })}
       </div>
 
       <Pagination

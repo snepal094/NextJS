@@ -1,10 +1,7 @@
 'use client';
-import { productCategories } from '@/constants/general.constant';
-import $axios from '@/lib/axios/axios.instance';
-import { addProductValidationSchema } from '@/validation-schema/product.validation.schema';
 import {
-  Button,
   Box,
+  Button,
   Checkbox,
   FormControl,
   FormControlLabel,
@@ -18,24 +15,18 @@ import {
 } from '@mui/material';
 import { useMutation } from '@tanstack/react-query';
 import { Formik } from 'formik';
-import React from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { productCategories } from '../../../constants/general.constant';
+import $axios from '../../../lib/axios/axios.instance';
+import { addProductValidationSchema } from '../../../validation-schema/product.validation.schema';
 
 const AddProduct = () => {
-  const [accessToken, setAccessToken] = useState(null);
-
-  useEffect(() => {
-    const token = window.localStorage.getItem('token');
-    setAccessToken(token);
-  }, []);
-
   const router = useRouter();
 
   const { isPending, error, mutate } = useMutation({
     mutationKey: ['add-product'],
     mutationFn: async (values) => {
-      return await $axios.post('/product/add', values, {});
+      return await $axios.post('/product/add', values);
     },
     onSuccess: (res) => {
       router.push('/');
@@ -60,7 +51,6 @@ const AddProduct = () => {
         }}
         validationSchema={addProductValidationSchema}
         onSubmit={(values) => {
-          console.log('Form submitted with values:', values); // Debugging
           mutate(values);
         }}
       >

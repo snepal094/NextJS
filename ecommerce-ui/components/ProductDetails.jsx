@@ -1,37 +1,48 @@
 'use client';
-import $axios from '@/lib/axios/axios.instance';
-import { isBuyer, isSeller } from '@/utils/check.role';
 import AddIcon from '@mui/icons-material/Add';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import RemoveIcon from '@mui/icons-material/Remove';
 import {
+  Button,
+  Checkbox,
+  Chip,
   IconButton,
   Stack,
-  Button,
   Typography,
-  Chip,
-  Checkbox,
-  CircularProgress,
 } from '@mui/material';
-import EditNoteOutlinedIcon from '@mui/icons-material/EditNoteOutlined';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
-import { useParams } from 'next/navigation';
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
+import Loader from '../components/Loader';
+import $axios from '../lib/axios/axios.instance';
+import { isBuyer, isSeller } from '../utils/check.role';
 import DeleteProductDialog from './DeleteProductDialog';
+import EditNoteOutlinedIcon from '@mui/icons-material/EditNoteOutlined';
 
 const ProductDetails = () => {
-  const router = useRouter();
   const params = useParams();
-  const [count, setCount] = useState(1);
-  const [isMounted, setIsMounted] = useState(true);
+  const router = useRouter();
+  const [count, setCount] = React.useState(1);
 
-  React.useEffect(() => {
-    if (typeof window !== 'undefined') {
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    if (typeof window !== undefined) {
       setIsMounted(true);
     }
   }, []);
+
+  // hit get product detail api
+  const { data, isPending } = useQuery({
+    queryKey: ['get-product-details'],
+    queryFn: async () => {
+      return await $axios.get(`/product/detail/${params.id}`);
+    },
+  });
+
+  const productDetail = data?.data?.productDetail;
+  const availableProductQuantity = productDetail?.quantity;
+
+  const isCountEqualToProductQuantity = count === availableProductQuantity;
 
   const increaseCount = () => {
     if (count < availableProductQuantity) {
@@ -45,7 +56,7 @@ const ProductDetails = () => {
     }
   };
 
-  //add product to cart
+  // add product to cart
   const { isPending: addToCartPending, mutate } = useMutation({
     mutationKey: ['add-item-to-cart'],
     mutationFn: async () => {
@@ -55,41 +66,17 @@ const ProductDetails = () => {
       });
     },
     onSuccess: (res) => {
-      //open snackbar
+      // open snackbar
     },
 
     onError: (error) => {
-      console.log('Add to cart failed...');
+      console.log('add to cart failed...');
       console.log(error);
     },
   });
 
-  //view cart
-
-  // const { isPending: cartListPending, mutate: cartListMutate } = useMutation({
-  //   mutationKey: ['view-cart'],
-  //   mutationFn: async () => {
-  //     return await $axios.get('/cart/list');
-  //   },
-  // });
-
-  // hit get product detail api
-
-  const { data, isPending } = useQuery({
-    queryKey: ['get-product-details'],
-    queryFn: async () => {
-      return await $axios.get(`/product/detail/${params.id}`);
-    },
-  });
-
-  console.log(data);
-
-  const productDetail = data?.data?.productDetail;
-  const availableProductQuantity = productDetail?.quantity;
-  const isCountEqualToProductQuantity = count === availableProductQuantity;
-
-  if (isPending || !isMounted) {
-    return <CircularProgress />;
+  if (isPending || !isMounted || addToCartPending) {
+    return <Loader />;
   }
   return (
     <div className="flex flex-col md:flex-row max-w-[90%] mx-auto shadow-2xl rounded-lg overflow-hidden bg-white">
@@ -116,26 +103,29 @@ const ProductDetails = () => {
           color="secondary"
           className="text-sm md:text-base"
         />
-        <Typography variant="h6" className="text-gray-600 text-base md:text-lg">
+        <Typography
+          variant="h6"
+          className="text-gray-600 text-base md:text-lg capitalize"
+        >
           {productDetail?.category}
         </Typography>
         <Typography
           variant="h6"
           className="font-bold text-green-500 text-lg md:text-xl"
         >
-          ${productDetail?.price}
+          Price: $ {productDetail?.price}
         </Typography>
         <Stack
           direction="row"
           justifyContent="center"
           alignItems="center"
-          gap={1}
+          gap={2}
         >
           <Typography
             variant="h6"
             className="text-gray-500 text-sm md:text-base"
           >
-            Free shipping{productDetail?.freeShipping}
+            Free Shipping
           </Typography>
           <Checkbox color="success" checked={productDetail?.freeShipping} />
         </Stack>
@@ -150,6 +140,7 @@ const ProductDetails = () => {
           {productDetail?.description}
         </Typography>
         {/* Quantity Selector */}
+
         {isBuyer() && (
           <>
             <Stack
@@ -186,29 +177,19 @@ const ProductDetails = () => {
             <Button
               variant="contained"
               color="success"
-              className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg mt-4"
               onClick={() => {
                 mutate();
               }}
             >
               Add to Cart
             </Button>
-
-            <IconButton
-              color="success"
-              onClick={() => {
-                router.push('/cart');
-                // cartListMutate();
-              }}
-            >
-              <ShoppingCartIcon />
-            </IconButton>
           </>
         )}
 
         {isSeller() && (
           <div className="flex gap-8 my-4">
             <DeleteProductDialog productId={params.id} />
+
             <Button
               variant="contained"
               color="success"
@@ -217,7 +198,7 @@ const ProductDetails = () => {
                 router.push(`/product/edit/${params.id}`);
               }}
             >
-              Edit
+              edit
             </Button>
           </div>
         )}
